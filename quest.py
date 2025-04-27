@@ -1,32 +1,42 @@
 from telethon import TelegramClient
+import asyncio
+import time
 
-# Your API ID and Hash from Telegram's Developer Portal
+# Telegram credentials
 api_id = 24363261
 api_hash = 'e713babdb456b6606e1d968c91d96148'
-
-# Your phone number (including country code)
 phone_number = '+12174095604'
 
-# The target group ID or username (you can get the group ID by adding the bot to the group)
-target_group = -1002613074606  # e.g., 'mygroup' or '-100xxxxxxxxxx' for private groups
+# Target group and message
+target_group = -1002613074606
+message = "Last Check!"
 
-# The message you want to send
-message = "working...!"
-
-# Create the client
 client = TelegramClient('session_name', api_id, api_hash)
 
-async def send_message():
-    # Connect to Telegram
+async def send_message_periodically(initial_delay, repeat_interval):
     await client.start(phone_number)
 
-    # Send the message to the group
-    await client.send_message(target_group, message)
-    print(f"Message sent to group {target_group}!")
+    # Initial wait
+    print(f"⏳ Waiting for {initial_delay} seconds before sending first message...")
+    await asyncio.sleep(initial_delay)
 
-    # Disconnect after sending the message
-    await client.disconnect()
+    while True:
+        await client.send_message(target_group, message)
+        print(f"✅ Message sent to group {target_group} at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+        # Wait for next interval
+        print(f"⏳ Waiting {repeat_interval} seconds before sending next message...")
+        await asyncio.sleep(repeat_interval)
+
+async def main():
+    try:
+        # Take custom timing inputs from user
+        initial_delay = 5
+        repeat_interval = int(input("🔁 Enter Repeat Interval between messages (in min): "))*60
+
+        await send_message_periodically(initial_delay, repeat_interval)
+    finally:
+        await client.disconnect()
 
 if __name__ == '__main__':
-    import asyncio
-    asyncio.run(send_message())
+    asyncio.run(main())
